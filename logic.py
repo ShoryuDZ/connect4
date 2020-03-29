@@ -1,5 +1,9 @@
+from operator import itemgetter
+
 board = []
 indicators = []
+filledCells = []
+connect = int(input("How many tokens must be connected? "))
 
 def initialiser():
     numberOfRows = int(input("How many rows on the board? "))
@@ -36,6 +40,8 @@ def insertToken():
     while y >= 0 and not inserted:
         if board[y][insertionPosition] == 0:
             board[y][insertionPosition] = 1
+            filledCells.append([insertionPosition, y])
+            filledCells.sort()
             inserted = True
         y -= 1
     if inserted:
@@ -52,9 +58,32 @@ def fullBoardChecker():
         x += 1
     return full
 
+def continueGame():
+    print(filledCells)
+    return fullBoardChecker() and not connectChecker()
+
+def connectChecker():
+    for cell in filledCells:
+        if cell[0] <= len(board[0]) - connect:
+            if horizontalConnect(cell):
+                return True
+
+def horizontalConnect(basecell):
+    horizontalCells = []
+    horizontalCells.append(basecell)
+    for cell in filledCells:
+        if cell[1] == basecell[1]:
+            if cell[0] == basecell[0] + 1:
+                horizontalCells.append(cell)
+                basecell = cell
+    if len(horizontalCells) >= connect:
+        return True
+    return False
+        
+
 initialiser()
 printBoard()
-while fullBoardChecker():
+while continueGame():
     insertToken()
 
 print("Game Over!")
