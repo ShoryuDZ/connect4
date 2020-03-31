@@ -64,9 +64,8 @@ def continueGame():
 
 def connectChecker():
     for cell in filledCells:
-        if cell[0] <= len(board[0]) - connect:
-            if horizontalConnect(cell):
-                return True
+        if (cell[0] <= len(board[0]) - connect and horizontalConnect(cell)) or (cell[0] <= len(board) - connect and verticalConnect(cell)):
+            return True
 
 def horizontalConnect(basecell):
     horizontalCells = []
@@ -77,6 +76,17 @@ def horizontalConnect(basecell):
                 horizontalCells.append(cell)
                 basecell = cell
     if len(horizontalCells) >= connect:
+        return True
+    return False
+
+def verticalConnect(basecell):
+    verticalCells = []
+    verticalCells.append(basecell)
+    for cell in filledCells:
+        if cell[0] == basecell[0] and cell[1] == basecell[1] + 1:
+            verticalCells.append(cell)
+            basecell = cell
+    if len(verticalCells) >= connect:
         return True
     return False
         
