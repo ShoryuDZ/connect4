@@ -59,12 +59,11 @@ def fullBoardChecker():
     return full
 
 def continueGame():
-    print(filledCells)
     return fullBoardChecker() and not connectChecker()
 
 def connectChecker():
     for cell in filledCells:
-        if (cell[0] <= len(board[0]) - connect and horizontalConnect(cell)) or (cell[0] <= len(board) - connect and verticalConnect(cell)):
+        if (cell[0] <= len(board[0]) - connect and horizontalConnect(cell)) or (cell[1] <= len(board) - connect and verticalConnect(cell)) or (cell[0] <= len(board[0]) - connect and cell[1] >= connect - 1 and upwardsDiagonalConnect(cell)) or ((cell[0] <= len(board[0]) - connect and cell[1] <= len(board) - connect and downwardsDiagonalConnect(cell))): 
             return True
 
 def horizontalConnect(basecell):
@@ -89,7 +88,29 @@ def verticalConnect(basecell):
     if len(verticalCells) >= connect:
         return True
     return False
-        
+
+def upwardsDiagonalConnect(basecell):
+    diagonalCells = []
+    diagonalCells.append(basecell)
+    for cell in filledCells:
+        if cell[0] == basecell[0] + 1 and cell[1] == basecell[1] - 1:
+            diagonalCells.append(cell)
+            basecell = cell
+    if len(diagonalCells) >= connect:
+        return True
+    return False
+
+def downwardsDiagonalConnect(basecell):
+    diagonalCells = []
+    diagonalCells.append(basecell)
+    for cell in filledCells:
+        if cell[0] == basecell[0] + 1 and cell[1] == basecell[1] + 1:
+            diagonalCells.append(cell)
+            basecell = cell
+    if len(diagonalCells) >= connect:
+        return True
+    return False
+
 
 initialiser()
 printBoard()
