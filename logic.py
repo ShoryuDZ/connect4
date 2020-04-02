@@ -3,6 +3,8 @@ from operator import itemgetter
 board = []
 indicators = []
 filledCells = []
+moveNumber = 0
+playerNumber = 1
 connect = int(input("How many tokens must be connected? "))
 
 def initialiser():
@@ -33,18 +35,22 @@ def printBoard():
     print(indicators)
 
 def insertToken():
-    insertionPosition = int(input("Column to place token: ")) - 1
+    global moveNumber
+    global playerNumber
+    playerNumber = (moveNumber % 2) + 1
+    insertionPosition = int(input("Player " + str(playerNumber) + "'s column to place token: ")) - 1
     
     inserted = False
     y = len(board) - 1
     while y >= 0 and not inserted:
         if board[y][insertionPosition] == 0:
-            board[y][insertionPosition] = 1
-            filledCells.append([insertionPosition, y])
+            board[y][insertionPosition] = playerNumber
+            filledCells.append([insertionPosition, y, playerNumber])
             filledCells.sort()
             inserted = True
         y -= 1
     if inserted:
+        moveNumber += 1
         printBoard()
     else:
         print("Column Full! Please reselect.")
@@ -70,46 +76,38 @@ def horizontalConnect(basecell):
     horizontalCells = []
     horizontalCells.append(basecell)
     for cell in filledCells:
-        if cell[1] == basecell[1]:
-            if cell[0] == basecell[0] + 1:
+        if cell[1] == basecell[1] and cell[0] == basecell[0] + 1 and cell[2] == basecell[2]:
                 horizontalCells.append(cell)
                 basecell = cell
-    if len(horizontalCells) >= connect:
-        return True
-    return False
+    return len(horizontalCells) >= connect
 
 def verticalConnect(basecell):
     verticalCells = []
     verticalCells.append(basecell)
     for cell in filledCells:
-        if cell[0] == basecell[0] and cell[1] == basecell[1] + 1:
+        if cell[0] == basecell[0] and cell[1] == basecell[1] + 1 and cell[2] == basecell[2]:
             verticalCells.append(cell)
             basecell = cell
-    if len(verticalCells) >= connect:
-        return True
-    return False
+    return len(verticalCells) >= connect
+
 
 def upwardsDiagonalConnect(basecell):
     diagonalCells = []
     diagonalCells.append(basecell)
     for cell in filledCells:
-        if cell[0] == basecell[0] + 1 and cell[1] == basecell[1] - 1:
+        if cell[0] == basecell[0] + 1 and cell[1] == basecell[1] - 1 and cell[2] == basecell[2]:
             diagonalCells.append(cell)
             basecell = cell
-    if len(diagonalCells) >= connect:
-        return True
-    return False
+    return len(diagonalCells) >= connect
 
 def downwardsDiagonalConnect(basecell):
     diagonalCells = []
     diagonalCells.append(basecell)
     for cell in filledCells:
-        if cell[0] == basecell[0] + 1 and cell[1] == basecell[1] + 1:
+        if cell[0] == basecell[0] + 1 and cell[1] == basecell[1] + 1 and cell[2] == basecell[2]:
             diagonalCells.append(cell)
             basecell = cell
-    if len(diagonalCells) >= connect:
-        return True
-    return False
+    return len(diagonalCells) >= connect
 
 
 initialiser()
@@ -117,4 +115,4 @@ printBoard()
 while continueGame():
     insertToken()
 
-print("Game Over!")
+print("Game Over ~Player " + str(playerNumber) + " wins!~")
