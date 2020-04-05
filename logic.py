@@ -1,15 +1,18 @@
 from operator import itemgetter
+import math
 
 board = []
 indicators = []
 filledCells = []
 moveNumber = 0
 playerNumber = 1
-connect = int(input("How many tokens must be connected? "))
+connect = 0
 
 def initialiser():
-    numberOfRows = int(input("How many rows on the board? "))
-    numberOfColumns = int(input("How many columns on the board? "))
+    global connect
+    connect = askValue("How many tokens must be connected? ", "Please allow for at least 3 tokens to be connected", 3, math.inf)
+    numberOfRows = askValue("Number of rows: ", "Minimum height of 4", 4, math.inf)
+    numberOfColumns = askValue("Number of columns: ", "Minimum width of 4", 4, math.inf)
 
     x = 0
     y = 0
@@ -27,6 +30,13 @@ def initialiser():
         indicators.append(y + 1)
         y += 1
 
+def askValue(question, errorMessage, minimum, maximum):
+    value = int(input(question))
+    while value < minimum or value > maximum:
+        print(errorMessage)
+        value = int(input(question))
+    return value
+    
 def printBoard():
     for row in board:
         print(" "*16, end='')
@@ -38,7 +48,7 @@ def insertToken():
     global moveNumber
     global playerNumber
     playerNumber = (moveNumber % 2) + 1
-    insertionPosition = int(input("Player " + str(playerNumber) + "'s column to place token: ")) - 1
+    insertionPosition = askValue("Player " + str(playerNumber) + "'s column to place token: ", "Please enter a valid column (1 - " + str(len(board[0])) + ").", 1, len(board[0])) - 1
     
     inserted = False
     y = len(board) - 1
@@ -69,46 +79,31 @@ def continueGame():
 
 def connectChecker():
     for cell in filledCells:
-        if (cell[0] <= len(board[0]) - connect and horizontalConnect(cell)) or (cell[1] <= len(board) - connect and verticalConnect(cell)) or (cell[0] <= len(board[0]) - connect and cell[1] >= connect - 1 and upwardsDiagonalConnect(cell)) or ((cell[0] <= len(board[0]) - connect and cell[1] <= len(board) - connect and downwardsDiagonalConnect(cell))): 
+        horizontalConnect = cell[0] <= len(board[0]) - connect and connectTokens("horizontal", cell)
+        verticalConnect = cell[1] <= len(board) - connect and connectTokens("vertical", cell)
+        upwardsDiagonalConnect = cell[0] <= len(board[0]) - connect and cell[1] >= connect - 1 and connectTokens("upwards diagonal", cell)
+        downwardsDiagonalConnect = cell[0] <= len(board[0]) - connect and cell[1] <= len(board) - connect and connectTokens("downwards diagonal", cell)
+        if horizontalConnect or verticalConnect or upwardsDiagonalConnect or downwardsDiagonalConnect: 
             return True
 
-def horizontalConnect(basecell):
-    horizontalCells = []
-    horizontalCells.append(basecell)
+def connectTokens(direction, basecell):
+    adjacentCells = []
+    adjacentCells.append(basecell)
     for cell in filledCells:
-        if cell[1] == basecell[1] and cell[0] == basecell[0] + 1 and cell[2] == basecell[2]:
-                horizontalCells.append(cell)
-                basecell = cell
-    return len(horizontalCells) >= connect
-
-def verticalConnect(basecell):
-    verticalCells = []
-    verticalCells.append(basecell)
-    for cell in filledCells:
-        if cell[0] == basecell[0] and cell[1] == basecell[1] + 1 and cell[2] == basecell[2]:
-            verticalCells.append(cell)
+        if passConditional(direction, cell, basecell):
+            adjacentCells.append(cell)
             basecell = cell
-    return len(verticalCells) >= connect
+    return len(adjacentCells) >= connect
 
-
-def upwardsDiagonalConnect(basecell):
-    diagonalCells = []
-    diagonalCells.append(basecell)
-    for cell in filledCells:
-        if cell[0] == basecell[0] + 1 and cell[1] == basecell[1] - 1 and cell[2] == basecell[2]:
-            diagonalCells.append(cell)
-            basecell = cell
-    return len(diagonalCells) >= connect
-
-def downwardsDiagonalConnect(basecell):
-    diagonalCells = []
-    diagonalCells.append(basecell)
-    for cell in filledCells:
-        if cell[0] == basecell[0] + 1 and cell[1] == basecell[1] + 1 and cell[2] == basecell[2]:
-            diagonalCells.append(cell)
-            basecell = cell
-    return len(diagonalCells) >= connect
-
+def passConditional(direction, cell, basecell):
+    if (direction == "horizontal"):
+        return cell[1] == basecell[1] and cell[0] == basecell[0] + 1 and cell[2] == basecell[2]
+    elif (direction == "vertical"):
+        return cell[0] == basecell[0] and cell[1] == basecell[1] + 1 and cell[2] == basecell[2]
+    elif (direction == "upwards diagonal"):
+        return cell[0] == basecell[0] + 1 and cell[1] == basecell[1] - 1 and cell[2] == basecell[2]
+    elif (direction == "downwards diagonal"):
+        return cell[0] == basecell[0] + 1 and cell[1] == basecell[1] + 1 and cell[2] == basecell[2]
 
 initialiser()
 printBoard()
