@@ -5,6 +5,7 @@ import math
 def initialiser():
     
     cpuPlayerInt = Input.askValue("Number of players - 1 (vs CPU) or 2 (1 vs 1): ", "Please enter a number between 1 and 2", 1, 2)
+    
     player1 = Player(1, False)
     player2 = Player(2, cpuPlayerInt != 2)
 
@@ -14,7 +15,17 @@ def initialiser():
 
     mainBoard = Board(numberOfRows, numberOfColumns, connect)
 
-    return player1, player2, mainBoard
+    return [player1, player2], mainBoard
+
+def continueGame(board, players):
+    winningPlayer = board.connectChecker()
+    if board.fullBoardChecker() and winningPlayer == None:
+        return True
+    
+    for player in players:
+        if player.number == winningPlayer[1]:
+            endGame(player)
+            return False
 
 def endGame(winningPlayer):
     gameOverString =  "Game Over ~"
@@ -25,23 +36,17 @@ def endGame(winningPlayer):
 
     print(gameOverString)
 
-def continueGame(board, player):
-    if board.fullBoardChecker() and not board.connectChecker():
-        return True
-    endGame(player)
-    return False
-
 if __name__ == "__main__":
-    player1, player2, mainBoard = initialiser()
+    players, mainBoard = initialiser()
     mainBoard.printBoard()
-    lastMover = player2
-    while continueGame(mainBoard, lastMover):
-        if (lastMover == player2):
-            mainBoard.newMove(player1)
-            lastMover = player1
+    lastMover = players[1]
+    while continueGame(mainBoard, players):
+        if (lastMover == players[1]):
+            mainBoard.newMove(players[0])
+            lastMover = players[0]
         else:
-            mainBoard.newMove(player2)
-            lastMover = player2
+            mainBoard.newMove(players[1])
+            lastMover = players[1]
 
 """ 
 def begin_game():

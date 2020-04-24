@@ -6,10 +6,15 @@ class Board:
     board = []
     indicators = []
     filledCells = []
+    
     connect = 0
+    height = 0
+    length = 0
 
     def __init__(self, height, length, connect):
         self.connect = connect
+        self.height = height
+        self.length = length
         
         x = 0
         y = 0
@@ -53,13 +58,13 @@ class Board:
     def newMove(self, player):
         if (player.CPU):
             print("Computer making move")
-            insertionPosition = self.cpuInsert()
+            insertionPosition = self.cpuInsert(player)
         else:
             insertionPosition = Input.askValue("Player " + str(player.number) + "'s column to place token: ", "Please enter a valid column (1 - " + str(len(self.board[0])) + ").", 1, len(self.board[0])) - 1
         
         self.insertToken(insertionPosition, player)
     
-    def cpuInsert(self):
+    def cpuInsert(self, cpuPlayer):
         availableColumns = []
         x = 0
         while x < len(self.board[0]):
@@ -80,36 +85,70 @@ class Board:
 
     def connectChecker(self):
         for cell in self.filledCells:
-            horizontalConnect = cell[0] <= len(self.board[0]) - self.connect and self.connectTokens("horizontal", cell)
-            verticalConnect = cell[1] <= len(self.board) - self.connect and self.connectTokens("vertical", cell)
-            upwardsDiagonalConnect = cell[0] <= len(self.board[0]) - self.connect and cell[1] >= self.connect - 1 and self.connectTokens("upwards diagonal", cell)
-            downwardsDiagonalConnect = cell[0] <= len(self.board[0]) - self.connect and cell[1] <= len(self.board) - self.connect and self.connectTokens("downwards diagonal", cell)
-            if horizontalConnect or verticalConnect or upwardsDiagonalConnect or downwardsDiagonalConnect: 
-                return True
+            connectList = []
+            if cell[0] <= len(self.board[0]) - self.connect:
+                connectList.append(self.connectTokens("horizontal", cell))
+            if cell[1] <= len(self.board) - self.connect:
+                connectList.append(self.connectTokens("vertical", cell))
+            if cell[0] <= len(self.board[0]) - self.connect and cell[1] >= self.connect - 1:
+                connectList.append(self.connectTokens("upwards diagonal", cell))
+            if cell[0] <= len(self.board[0]) - self.connect and cell[1] <= len(self.board) - self.connect:
+                connectList.append(self.connectTokens("downwards diagonal", cell))
+
+            for connection in connectList:
+                if connection[0]:
+                    return connection
 
     def connectTokens(self, direction, basecell):
         adjacentCells = []
         adjacentCells.append(basecell)
         for cell in self.filledCells:
-            if self.passConditional(direction, cell, basecell):
+            conditional = self.passConditional(direction, cell, basecell)
+            if conditional[0]:
                 adjacentCells.append(cell)
                 basecell = cell
-        return len(adjacentCells) >= self.connect
+        return [len(adjacentCells) >= self.connect, adjacentCells[0][2]]
 
     def passConditional(self, direction, cell, basecell):
-        if (direction == "horizontal"):
-            return cell[1] == basecell[1] and cell[0] == basecell[0] + 1 and cell[2] == basecell[2]
-        elif (direction == "vertical"):
-            return cell[0] == basecell[0] and cell[1] == basecell[1] + 1 and cell[2] == basecell[2]
-        elif (direction == "upwards diagonal"):
-            return cell[0] == basecell[0] + 1 and cell[1] == basecell[1] - 1 and cell[2] == basecell[2]
-        elif (direction == "downwards diagonal"):
-            return cell[0] == basecell[0] + 1 and cell[1] == basecell[1] + 1 and cell[2] == basecell[2]
+        passConditional = False
+        if cell[2] == basecell[2]:
+            if (direction == "horizontal"):
+                passConditional = cell[1] == basecell[1] and cell[0] == basecell[0] + 1
+            elif (direction == "vertical"):
+                passConditional = cell[0] == basecell[0] and cell[1] == basecell[1] + 1
+            elif (direction == "upwards diagonal"):
+                passConditional = cell[0] == basecell[0] + 1 and cell[1] == basecell[1] - 1
+            elif (direction == "downwards diagonal"):
+                passConditional = cell[0] == basecell[0] + 1 and cell[1] == basecell[1] + 1
+        return [passConditional, cell[2]]
+
+class SimBoard(Board):
+    children = []
+    nextPlayerNumber = 0
+
+    def __init__(self, parent, nextPlayerNumber):
+        Board.__init__(self, parent.height, parent.length, parent.connect)
+        self.filledCells = parent.filledCells
+        self.nextPlayerNumber = nextPlayerNumber
+
+    def placeTokens(self):
+        player = Player(nextPlayerNumber, True)
+        x = 0
+        while x < len(self.board[0]):
+            if self.board[0][x] == 0:
+                newBoard = SimBoard(self, 1)
+                newBoard.insertToken(x, player)
+                boardResult = newBoard.connectChecker()
+                if (boardResult != None):
+                    children.append([newBoard, boardResult[0], boardResult[1]])
+                else:
+                    newBoard.placeTokens
+                    children.append([newBoard, False, None])        
 
 class Player:
     number = 0
     CPU = False
-    
+
     def __init__(self, number, CPU):
         self.number = number
         self.CPU = CPU
