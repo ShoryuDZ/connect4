@@ -67,6 +67,8 @@ class Board:
     def cpuInsert(self, cpuPlayer):
         availableColumns = []
         x = 0
+        simboard = SimBoard(self, 1)
+        simboard.placeTokens()
         while x < len(self.board[0]):
             if self.board[0][x] == 0:
                 availableColumns.append(x)
@@ -124,26 +126,26 @@ class Board:
 
 class SimBoard(Board):
     children = []
-    nextPlayerNumber = 0
+    levelCount = 0
 
-    def __init__(self, parent, nextPlayerNumber):
-        Board.__init__(self, parent.height, parent.length, parent.connect)
+    def __init__(self, parent, levelCount):
         self.filledCells = parent.filledCells
-        self.nextPlayerNumber = nextPlayerNumber
+        self.levelCount = levelCount
 
     def placeTokens(self):
-        player = Player(nextPlayerNumber, True)
+        player = Player(self.levelCount % 2, True)
         x = 0
         while x < len(self.board[0]):
             if self.board[0][x] == 0:
-                newBoard = SimBoard(self, 1)
+                newBoard = SimBoard(self, self.levelCount + 1)
                 newBoard.insertToken(x, player)
                 boardResult = newBoard.connectChecker()
                 if (boardResult != None):
-                    children.append([newBoard, boardResult[0], boardResult[1]])
+                    self.children.append([newBoard, boardResult[0], boardResult[1]])
                 else:
-                    newBoard.placeTokens
-                    children.append([newBoard, False, None])        
+                    newBoard.placeTokens()
+                    self.children.append([newBoard, False, None])
+            x += 1        
 
 class Player:
     number = 0
